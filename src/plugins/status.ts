@@ -1,17 +1,17 @@
-import Hapi from '@hapi/hapi'
+import { ResponseToolkit } from "./../../node_modules/@types/hapi__hapi/index.d";
+import Hapi from "@hapi/hapi";
 
-// plugin to instantiate Prisma Client
 const plugin: Hapi.Plugin<undefined> = {
-  name: 'app/status',
-  register: async function (server: Hapi.Server) {
+  name: "app/status",
+  register: async (server: Hapi.Server) => {
     server.route({
-      // default status endpoint
-      method: 'GET',
-      path: '/',
-      handler: (_, h: Hapi.ResponseToolkit) =>
-        h.response({ up: true }).code(200),
-    })
+      method: "GET",
+      path: "/",
+      handler: (_, h: Hapi.ResponseToolkit) => {
+        return h.response({ up: true }).code(200);
+      },
+    });
   },
-}
+};
 
-export default plugin
+export default plugin;

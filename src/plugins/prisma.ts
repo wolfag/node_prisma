@@ -1,34 +1,27 @@
-import { PrismaClient } from '@prisma/client'
-import Hapi from '@hapi/hapi'
+import { ServerApplicationState } from "./../../node_modules/@types/hapi__hapi/index.d";
+import { PrismaClient } from "@prisma/client";
+import Hapi from "@hapi/hapi";
 
-// Module augmentation to add shared application state
-// https://github.com/DefinitelyTyped/DefinitelyTyped/issues/33809#issuecomment-472103564
-declare module '@hapi/hapi' {
+declare module "@hapi/hapi" {
   interface ServerApplicationState {
-    prisma: PrismaClient
+    prisma: PrismaClient;
   }
 }
 
-// plugin to instantiate Prisma Client
 const prismaPlugin: Hapi.Plugin<null> = {
-  name: 'prisma',
-  register: async function (server: Hapi.Server) {
-    const prisma = new PrismaClient({
-      // Uncomment 👇 for logs
-      // log: ['error', 'warn', 'query'],
-    })
+  name: "prisma",
+  register: async (server: Hapi.Server) => {
+    const prisma = new PrismaClient({});
 
-    server.app.prisma = prisma
+    server.app.prisma = prisma;
 
-    // Close DB connection after the server's connection listeners are stopped
-    // Related issue: https://github.com/hapijs/hapi/issues/2839
     server.ext({
-      type: 'onPostStop',
+      type: "onPostStop",
       method: async (server: Hapi.Server) => {
-        server.app.prisma.disconnect()
+        server.app.prisma.$disconnect();
       },
-    })
+    });
   },
-}
+};
 
-export default prismaPlugin
+export default prismaPlugin;

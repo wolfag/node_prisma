@@ -1,11 +1,19 @@
-import Hapi from "@hapi/hapi";
+import { createUserCredentials } from "./test-helpers";
+import { API_AUTH_STATEGY } from "./../src/plugins/auth";
+import Hapi, { AuthCredentials } from "@hapi/hapi";
 import { createServer } from "../src/server";
+import { TokenType } from "@prisma/client";
+import { add } from "date-fns";
 
 describe("POST /users - create user", () => {
   let server: Hapi.Server;
+  let testUserCredentials: AuthCredentials;
+  let testAdminCredentials: AuthCredentials;
 
   beforeAll(async () => {
     server = await createServer();
+    testUserCredentials = await createUserCredentials(server.app.prisma, false);
+    testAdminCredentials = await createUserCredentials(server.app.prisma, true);
   });
 
   afterAll(async () => {
@@ -17,6 +25,10 @@ describe("POST /users - create user", () => {
     const response = await server.inject({
       method: "POST",
       url: "/users",
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testAdminCredentials,
+      },
       payload: {
         firstName: "test-first-name",
         lastName: "test-last-name",
@@ -38,6 +50,10 @@ describe("POST /users - create user", () => {
     const response = await server.inject({
       method: "POST",
       url: "/users",
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testAdminCredentials,
+      },
       payload: {
         lastName: "test-last-name",
         email: `test-${Date.now()}@prisma.io`,
@@ -55,6 +71,10 @@ describe("POST /users - create user", () => {
     const response = await server.inject({
       method: "GET",
       url: "/users/123",
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testAdminCredentials,
+      },
     });
 
     expect(response.statusCode).toEqual(404);
@@ -63,18 +83,26 @@ describe("POST /users - create user", () => {
   it("get user returns user", async () => {
     const response = await server.inject({
       method: "GET",
-      url: `/users/${userId}`,
+      url: `/users/${testUserCredentials.userId}`,
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testAdminCredentials,
+      },
     });
     expect(response.statusCode).toEqual(200);
     const user = JSON.parse(response.payload);
 
-    expect(user.id).toBe(userId);
+    expect(user.id).toBe(testUserCredentials.userId);
   });
 
   it("get user fails with invalid id", async () => {
     const response = await server.inject({
       method: "GET",
       url: "/users/a123",
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testUserCredentials,
+      },
     });
     expect(response.statusCode).toEqual(400);
   });
@@ -83,6 +111,10 @@ describe("POST /users - create user", () => {
     const response = await server.inject({
       method: "PUT",
       url: "/users/a22",
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testUserCredentials,
+      },
     });
 
     expect(response.statusCode).toEqual(400);
@@ -95,6 +127,10 @@ describe("POST /users - create user", () => {
     const response = await server.inject({
       method: "PUT",
       url: `/users/${userId}`,
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testUserCredentials,
+      },
       payload: {
         firstName: updatedFirstName,
         lastName: updatedLastName,
@@ -112,6 +148,10 @@ describe("POST /users - create user", () => {
     const response = await server.inject({
       method: "DELETE",
       url: `/users/${userId}`,
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testUserCredentials,
+      },
     });
     expect(response.statusCode).toEqual(204);
   });
@@ -120,6 +160,10 @@ describe("POST /users - create user", () => {
     const response = await server.inject({
       method: "DELETE",
       url: `/users/a22`,
+      auth: {
+        strategy: API_AUTH_STATEGY,
+        credentials: testUserCredentials,
+      },
     });
 
     expect(response.statusCode).toEqual(400);

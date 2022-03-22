@@ -1,11 +1,24 @@
+import { API_AUTH_STATEGY } from "./auth";
 import Hapi from "@hapi/hapi";
 import Joi from "@hapi/joi";
+import Boom from "@hapi/boom";
 
 const usersPlugin: Hapi.Plugin<null> = {
   name: "app/users",
   dependencies: ["prisma"],
   register: async (server: Hapi.Server) => {
     server.route([
+      {
+        method: "GET",
+        path: "/profile",
+        handler: getAuthenticatedUser,
+        options: {
+          auth: {
+            mode: "required",
+            strategy: API_AUTH_STATEGY,
+          },
+        },
+      },
       {
         method: "GET",
         path: "/users/{userId}",
@@ -175,5 +188,33 @@ async function updateHandler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
   } catch (error) {
     console.log({ error });
     return h.response().code(500);
+  }
+}
+
+async function getAuthenticatedUser(
+  request: Hapi.Request,
+  h: Hapi.ResponseToolkit
+) {
+  const { prisma } = request.server.app;
+  const { userId } = request.auth.credentials;
+
+  try {
+    const user = await prisma.user.findUnique({
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        social: true,
+      },
+      where: {
+        id: userId,
+      },
+    });
+
+    return h.response(user || undefined).code(200);
+  } catch (error) {
+    request.log("error", error as {});
+    return Boom.badImplementation();
   }
 }

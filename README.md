@@ -1,10 +1,13 @@
 # Real-world class grading App
 
+- https://www.prisma.io/blog/backend-prisma-typescript-orm-with-postgresql-auth-mngp1ps7kip4
+
 A real-world class grading application built with Prisma.
 
 The grading application is used to manage enrollment in online classes, tests (as in exams) for classes, and test results.
 
 The goal if this application is to showcase a real-world scenario of an application using Prisma. the following aspects of Prisma
+
 - Data modeling
 - CRUD
 - Aggregations

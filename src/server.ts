@@ -1,7 +1,14 @@
 import Hapi from "@hapi/hapi";
+import hapiAuthJWT from "hapi-auth-jwt2";
 import status from "./plugins/status";
 import prisma from "./plugins/prisma";
 import users from "./plugins/users";
+import email from "./plugins/email";
+import auth from "./plugins/auth";
+
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const server: Hapi.Server = Hapi.server({
   port: process.env.PORT || 3000,
@@ -9,7 +16,7 @@ const server: Hapi.Server = Hapi.server({
 });
 
 export async function createServer(): Promise<Hapi.Server> {
-  await server.register([status, prisma, users]);
+  await server.register([hapiAuthJWT, auth, prisma, email, status, users]);
   await server.initialize();
   return server;
 }
